@@ -1,3 +1,6 @@
+import pygame
+from pygame.locals import QUIT
+import sys
 import sys
 import unittest
 from pathlib import Path
@@ -114,19 +117,19 @@ def print_board(robot, boxes, walls, delay=0):
     height = max([y for x, y in walls]) + 1
 
     # initialize the board with empty spaces
-    board = [['.' for _ in range(width)] for _ in range(height)]
+    board = [['  ' for _ in range(width)] for _ in range(height)]
 
     # place the robot on the board
     x, y = robot
-    board[y][x] = '@'
+    board[y][x] = '🤖'
 
     # place the boxes on the board
     for x, y in boxes:
-        board[y][x] = 'O'
+        board[y][x] = '📦'
 
     # place the walls on the board
     for x, y in walls:
-        board[y][x] = '#'
+        board[y][x] = '🧱'
 
     # print the board
     for row in board:
@@ -178,9 +181,94 @@ class TestDay15(unittest.TestCase):
         walls = get_walls(board)
         print_board(robot, boxes, walls)
 
+# Initialize the pygame window
+def initialize_window(width, height, scale=16):
+    pygame.init()
+    window_width = width * scale
+    window_height = height * scale
+    screen = pygame.display.set_mode((window_width, window_height))
+    pygame.display.set_caption("Robot Puzzle Game")
+    return screen, scale
 
+# Render the board on the pygame surface
+def render_board(robot, boxes, walls, screen, scale):
+    # Colors for the elements
+    COLORS = {
+        "background": (255, 255, 255),
+        "robot": (0, 0, 255),
+        "box": (255, 165, 0),
+        "wall": (128, 128, 128)
+    }
+
+    # Clear the screen
+    screen.fill(COLORS["background"])
+
+    # Draw walls
+    for x, y in walls:
+        pygame.draw.rect(
+            screen,
+            COLORS["wall"],
+            pygame.Rect(x * scale, y * scale, scale, scale)
+        )
+
+    # Draw boxes
+    for x, y in boxes:
+        pygame.draw.rect(
+            screen,
+            COLORS["box"],
+            pygame.Rect(x * scale, y * scale, scale, scale)
+        )
+
+    # Draw robot
+    x, y = robot
+    pygame.draw.rect(
+        screen,
+        COLORS["robot"],
+        pygame.Rect(x * scale, y * scale, scale, scale)
+    )
+
+    # Update the display
+    pygame.display.flip()
+
+# Main game loop for rendering
+def part_one_with_rendering(board, directions, delay=0):
+    robot = get_robot(board)
+    boxes = get_boxes(board)
+    walls = get_walls(board)
+
+    # Get board dimensions
+    width = max([x for x, y in walls]) + 1
+    height = max([y for x, y in walls]) + 1
+
+    # Initialize pygame window
+    screen, scale = initialize_window(width, height)
+
+    # Game loop
+    for direction in directions:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # Move robot and update state
+        robot, boxes = move_robot(direction, robot, boxes, walls)
+
+        # Render the board
+        render_board(robot, boxes, walls, screen, scale)
+        if delay:
+            pygame.time.delay(delay)  # Add a small delay for smooth animation
+
+    pygame.quit()
+
+# To run the rendering version of part_one
 if __name__ == "__main__":
     file_path = '15.txt'
     board, directions = load_file(file_path)
-    print(part_one(board, directions, 0))
-    print(part_two(board, directions))
+    part_one_with_rendering(board, directions)
+
+
+# if __name__ == "__main__":
+#     file_path = '15.txt'
+#     board, directions = load_file(file_path)
+#     print(part_one(board, directions, 0.01))
+#     print(part_two(board, directions))
