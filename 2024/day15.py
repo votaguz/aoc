@@ -103,10 +103,30 @@ def get_items(board, item):
     return coordinates
 
 
-def load_file(file_path):
+def load_file(file_path, enhance=False):
     input = read_strings_by_separator(file_path, "\n\n", stripped=False)
     board = input[0].split("\n")
     directions = input[1].replace('\n', '')
+
+    if enhance:
+        enhanced_board = []
+        replacements = {
+            '#': '##',
+            'O': '[]',
+            '@': '@.',
+            '.': '..'
+        }
+
+
+        for (row,board_row) in enumerate(board):
+            # if there's no row yet, create one
+            if len(enhanced_board) <= row:
+                enhanced_board.append('')
+            for char in board_row:
+                if char == 'O':
+                    print('Stop here for the box!')
+                enhanced_board[row] += replacements.get(char)
+        return enhanced_board, directions
 
     return board, directions
 
@@ -117,19 +137,19 @@ def print_board(robot, boxes, walls, delay=0):
     height = max([y for x, y in walls]) + 1
 
     # initialize the board with empty spaces
-    board = [['  ' for _ in range(width)] for _ in range(height)]
+    board = [['.' for _ in range(width)] for _ in range(height)]
 
     # place the robot on the board
     x, y = robot
-    board[y][x] = '🤖'
+    board[y][x] = '@'
 
     # place the boxes on the board
     for x, y in boxes:
-        board[y][x] = '📦'
+        board[y][x] = 'O'
 
     # place the walls on the board
     for x, y in walls:
-        board[y][x] = '🧱'
+        board[y][x] = '#'
 
     # print the board
     for row in board:
@@ -159,6 +179,10 @@ def part_one(board, directions, print_delay=0):
 
 
 def part_two(board, directions):
+    robot = get_robot(board)
+    boxes = get_boxes(board)
+    walls = (get_walls(board))
+
     pass
 
 
@@ -181,6 +205,7 @@ class TestDay15(unittest.TestCase):
         walls = get_walls(board)
         print_board(robot, boxes, walls)
 
+
 # Initialize the pygame window
 def initialize_window(width, height, scale=16):
     pygame.init()
@@ -189,6 +214,7 @@ def initialize_window(width, height, scale=16):
     screen = pygame.display.set_mode((window_width, window_height))
     pygame.display.set_caption("Robot Puzzle Game")
     return screen, scale
+
 
 # Render the board on the pygame surface
 def render_board(robot, boxes, walls, screen, scale):
@@ -230,6 +256,7 @@ def render_board(robot, boxes, walls, screen, scale):
     # Update the display
     pygame.display.flip()
 
+
 # Main game loop for rendering
 def part_one_with_rendering(board, directions, delay=0):
     robot = get_robot(board)
@@ -261,14 +288,20 @@ def part_one_with_rendering(board, directions, delay=0):
     pygame.quit()
 
 # To run the rendering version of part_one
-if __name__ == "__main__":
-    file_path = '15.txt'
-    board, directions = load_file(file_path)
-    part_one_with_rendering(board, directions)
-
-
 # if __name__ == "__main__":
 #     file_path = '15.txt'
 #     board, directions = load_file(file_path)
-#     print(part_one(board, directions, 0.01))
-#     print(part_two(board, directions))
+#     part_one_with_rendering(board, directions)
+
+
+if __name__ == "__main__":
+    file_path = '15.2.test.txt'
+    # board, directions = load_file(file_path)
+    # print(part_one(board, directions, 0.01))
+    board, directions = load_file(file_path, True)
+    print(board)
+    robot = get_robot(board)
+    walls = get_walls(board)
+    boxes = get_boxes(board)
+    print_board(robot, boxes, walls, 0)
+    print(part_two(board, directions))
