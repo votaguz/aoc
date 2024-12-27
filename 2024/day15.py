@@ -53,21 +53,18 @@ def move_robot(direction, robot, boxes, walls):
 
 def push_box(direction, box, boxes, walls):
     ahead = get_ahead(box, direction)
-    if ahead in walls:
+    if ahead in walls or ahead in boxes:
         return False, boxes
-    if ahead in boxes:
-        return False, boxes
-    boxes.pop(box)
-    boxes[ahead] = ahead
+    boxes.remove(box)
+    boxes.add(ahead)
     return True, boxes
-
 
 def find_consecutive_boxes(direction, first_box, boxes):
     consecutive_boxes = [first_box]
     ahead = get_ahead(first_box, direction)
     while ahead in boxes:
-        consecutive_boxes.append(boxes[ahead])
-        ahead = get_ahead(boxes[ahead], direction)
+        consecutive_boxes.append(ahead)
+        ahead = get_ahead(ahead, direction)
     return consecutive_boxes
 
 
@@ -93,12 +90,12 @@ def get_boxes(board):
 
 
 def get_items(board, item):
-    coordinates = {}
+    coordinates = set()
     for y, row in enumerate(board):
         x = row.find(item, 0)
         while x != -1 and x < len(row):
             if x != -1:
-                coordinates[(x, y)] = (x, y)
+                coordinates.add((x, y))
             x = row.find(item, x + 1)
     return coordinates
 
@@ -184,27 +181,6 @@ def part_two(board, directions):
     walls = (get_walls(board))
 
     pass
-
-
-class TestDay15(unittest.TestCase):
-    def test_gps(self):
-        self.assertEqual(gps(1, 4), 104)
-
-    def test_part_one(self):
-        file_path = '15.txt'
-        board, directions = load_file(file_path)
-        result = part_one(board, directions)
-
-        self.assertEqual(result, 2028)
-
-    def test_get_walls(self):
-        file_path = '15.test.txt'
-        board, directions = load_file(file_path)
-        robot = get_robot(board)
-        boxes = get_boxes(board)
-        walls = get_walls(board)
-        print_board(robot, boxes, walls)
-
 
 # Initialize the pygame window
 def initialize_window(width, height, scale=16):
@@ -298,10 +274,32 @@ if __name__ == "__main__":
     file_path = '15.2.test.txt'
     # board, directions = load_file(file_path)
     # print(part_one(board, directions, 0.01))
-    board, directions = load_file(file_path, True)
+    board, directions = load_file(file_path, False)
     print(board)
     robot = get_robot(board)
     walls = get_walls(board)
     boxes = get_boxes(board)
     print_board(robot, boxes, walls, 0)
-    print(part_two(board, directions))
+    print(part_one(board, directions, 0.01))
+    # print(part_two(board, directions))
+
+
+class TestDay15(unittest.TestCase):
+    def test_gps(self):
+        self.assertEqual(gps(1, 4), 104)
+
+    def test_part_one(self):
+        file_path = '15.test.txt'
+        board, directions = load_file(file_path)
+        result = part_one(board, directions)
+
+        self.assertEqual(result, 2028)
+
+    def test_get_walls(self):
+        file_path = '15.test.txt'
+        board, directions = load_file(file_path)
+        robot = get_robot(board)
+        boxes = get_boxes(board)
+        walls = get_walls(board)
+        print_board(robot, boxes, walls)
+
